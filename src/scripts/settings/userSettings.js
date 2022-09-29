@@ -20,6 +20,11 @@ const defaultSubtitleAppearanceSettings = {
     verticalPosition: -3
 };
 
+const defaultComicsPlayerSettings = {
+    langDir: 'ltr',
+    pagesPerView: 1
+};
+
 export class UserSettings {
     /**
      * Bind UserSettings instance to user.
@@ -162,19 +167,6 @@ export class UserSettings {
         }
 
         return toBoolean(this.get('enableNextVideoInfoOverlay', false), true);
-    }
-
-    /**
-     * Get or set 'SetUsingLastTracks' state.
-     * @param {boolean|undefined} val - Flag to enable 'SetUsingLastTracks' or undefined.
-     * @return {boolean} 'SetUsingLastTracks' state.
-     */
-    enableSetUsingLastTracks(val) {
-        if (val !== undefined) {
-            return this.set('enableSetUsingLastTracks', val.toString());
-        }
-
-        return toBoolean(this.get('enableSetUsingLastTracks', false), true);
     }
 
     /**
@@ -530,6 +522,27 @@ export class UserSettings {
     }
 
     /**
+     * Get comics player settings.
+     * @param {string} mediaSourceId - Media Source Id.
+     * @return {Object} Comics player settings.
+     */
+    getComicsPlayerSettings(mediaSourceId) {
+        const settings = JSON.parse(this.get('comicsPlayerSettings', false) || '{}');
+        return Object.assign(defaultComicsPlayerSettings, settings[mediaSourceId]);
+    }
+
+    /**
+     * Set comics player settings.
+     * @param {Object} value - Comics player settings.
+     * @param {string} mediaSourceId - Media Source Id.
+     */
+    setComicsPlayerSettings(value, mediaSourceId) {
+        const settings = JSON.parse(this.get('comicsPlayerSettings', false) || '{}');
+        settings[mediaSourceId] = value;
+        return this.set('comicsPlayerSettings', JSON.stringify(settings), false);
+    }
+
+    /**
      * Set filter.
      * @param {string} key - Filter key.
      * @param {string} value - Filter value.
@@ -561,7 +574,6 @@ export const allowedAudioChannels = currentSettings.allowedAudioChannels.bind(cu
 export const preferFmp4HlsContainer = currentSettings.preferFmp4HlsContainer.bind(currentSettings);
 export const enableCinemaMode = currentSettings.enableCinemaMode.bind(currentSettings);
 export const enableNextVideoInfoOverlay = currentSettings.enableNextVideoInfoOverlay.bind(currentSettings);
-export const enableSetUsingLastTracks = currentSettings.enableSetUsingLastTracks.bind(currentSettings);
 export const enableThemeSongs = currentSettings.enableThemeSongs.bind(currentSettings);
 export const enableThemeVideos = currentSettings.enableThemeVideos.bind(currentSettings);
 export const enableFastFadein = currentSettings.enableFastFadein.bind(currentSettings);
@@ -586,6 +598,8 @@ export const loadQuerySettings = currentSettings.loadQuerySettings.bind(currentS
 export const saveQuerySettings = currentSettings.saveQuerySettings.bind(currentSettings);
 export const getSubtitleAppearanceSettings = currentSettings.getSubtitleAppearanceSettings.bind(currentSettings);
 export const setSubtitleAppearanceSettings = currentSettings.setSubtitleAppearanceSettings.bind(currentSettings);
+export const getComicsPlayerSettings = currentSettings.getComicsPlayerSettings.bind(currentSettings);
+export const setComicsPlayerSettings = currentSettings.setComicsPlayerSettings.bind(currentSettings);
 export const setFilter = currentSettings.setFilter.bind(currentSettings);
 export const getFilter = currentSettings.getFilter.bind(currentSettings);
 export const customCss = currentSettings.customCss.bind(currentSettings);

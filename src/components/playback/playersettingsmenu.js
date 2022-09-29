@@ -199,7 +199,8 @@ function showWithUser(options, player, user) {
         });
     }
 
-    if (user && user.Policy.EnableVideoPlaybackTranscoding) {
+    if (options.quality && supportedCommands.includes('SetMaxStreamingBitrate')
+            && user?.Policy?.EnableVideoPlaybackTranscoding) {
         const secondaryQualityText = getQualitySecondaryText(player);
 
         menuItems.push({
@@ -237,6 +238,7 @@ function showWithUser(options, player, user) {
 
     return actionsheet.show({
         items: menuItems,
+        resolveOnClick: true,
         positionTo: options.positionTo
     }).then(function (id) {
         return handleSelectedOption(id, options, player);

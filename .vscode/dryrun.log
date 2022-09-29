@@ -1,0 +1,6 @@
+make --dry-run --always-make --keep-going --print-directory
+make: Entering directory '/home/biro/jellyfin-web/jellyfin-web'
+make: Leaving directory '/home/biro/jellyfin-web/jellyfin-web'
+ 
+make: *** No targets specified and no makefile found.  Stop.
+
