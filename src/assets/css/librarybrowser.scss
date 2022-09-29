@@ -1268,6 +1268,10 @@ div:not(.sectionTitleContainer-cards) > .sectionTitle-cards {
     font-size: 1.4em;
 }
 
+.trackSelections .itemCompatibleWithoutTranscoding .showCompatibility .compatibleDeviceIcon{
+    font-size: 15px;
+}
+
 .overview-controls {
     display: flex;
     justify-content: flex-end;

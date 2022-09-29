@@ -232,6 +232,7 @@ function renderTrackSelections(page, instance, item, forceReload) {
         renderVideoSelections(page, mediaSources);
         renderAudioSelections(page, mediaSources);
         renderSubtitleSelections(page, mediaSources);
+        renderCompatibility(page, mediaSources);
     }
 }
 
@@ -335,6 +336,170 @@ function renderSubtitleSelections(page, mediaSources) {
     } else {
         select.innerHTML = '';
         page.querySelector('.selectSubtitlesContainer').classList.add('hide');
+    }
+}
+
+function renderCompatibility(page, mediaSources) {
+    // getting the media
+    const mediaSourceId = page.querySelector('.selectSource').value;
+    const mediaSource = mediaSources.filter(function (m) {
+        return m.Id === mediaSourceId;
+    })[0];
+
+    // default value for Codecs
+    let Codecs = {
+        // AC3 2
+        AudioAC32: false,
+        // AC3 5.1
+        AudioAC351: false,
+        // Dolby Digital 2
+        AudioDD2: false,
+        // Dolby Digital 5.1
+        AudioDD51: false,
+        // MP3
+        AudioMP3: false,
+        // AAC
+        AudioAAC: false,
+        // FLAC
+        AudioFLAC: false,
+
+        // H264 8Bit
+        VideoH2648B: false,
+        // H264 10Bit
+        VideoH26410B: false,
+        // H265 8Bit
+        VideoH2658B: false,
+        // H265 10Bit
+        VideoH26510B: false,
+        // MPEG4
+        VideoMPEG4: false,
+    };
+
+    // gather codecs
+    mediaSource.MediaStreams.map(function (m) {
+        console.log(m);
+        if(
+            m.Type === 'Audio' && m.Codec == "ac3" && 
+            !m.DisplayTitle.includes("Dolby Digital") && 
+            !m.DisplayTitle.includes("DD")
+        ){
+            if(m.Channels == 2){
+                Codecs.AudioAC32 = true
+            } else {
+                Codecs.AudioAC351 = true 
+            }
+        }
+        if(
+            m.Type === 'Audio' && m.Codec == "ac3" && 
+            (m.DisplayTitle.includes("Dolby Digital") || m.DisplayTitle.includes("DD"))
+        ){
+            if(m.Channels == 2){
+                Codecs.AudioDD2 = true 
+            } else {
+                Codecs.AudioDD51 = true 
+            }
+        }
+        if(m.Type === 'Audio' && m.Codec == "aac"){ Codecs.AudioAAC = true }
+        if(m.Type === 'Audio' && m.Codec == "mp3"){ Codecs.AudioMP3 = true }
+        if(m.Type === 'Audio' && m.Codec == "flac"){ Codecs.AudioFLAC = true }
+
+        // Video codecs
+        if(m.Type === 'Video' && m.Codec == "h264"){ 
+            if(m.BitDepth = 8){
+                Codecs.VideoH2648B = true 
+            } else{
+                Codecs.VideoH26410B = true 
+            }
+        }
+        if(m.Type === 'Video' && m.Codec == "h265"){ 
+            if(m.BitDepth = 8){
+                Codecs.VideoH2658B = true 
+            } else{
+                Codecs.VideoH26510B = true 
+            }
+        }
+        if(m.Type === 'Video' && m.Codec == "mpeg4"){ Codecs.VideoMPEG4 = true }
+        
+    }, [Codecs]);
+
+    // analyze device compatibilities
+    const knownMediaPlayers = [
+        {
+            name: 'ChromeCast',
+            icon: 'cast',
+            compatible: 
+                (
+                    (
+                        Codecs.AudioAAC ||
+                        Codecs.AudioDD2 ||
+                        Codecs.AudioAC32 ||
+                        Codecs.AudioAC351 ||
+                        Codecs.AudioFLAC ||
+                        Codecs.AudioMP3
+                    ) 
+                    && (
+                        Codecs.VideoH2648B ||
+                        Codecs.VideoH26410B
+                    )
+                )
+        },
+        {
+            name: 'Jellyfin Android App',
+            icon: 'android',
+            compatible: 
+                (
+                    (
+                        Codecs.AudioAAC ||
+                        Codecs.AudioFLAC ||
+                        Codecs.AudioMP3
+                    )
+                    && (
+                        Codecs.VideoH2648B ||
+                        Codecs.VideoH26410B
+                    )
+                )
+        },
+        {
+            name: 'Chrome',
+            icon: 'laptop_chromebook',
+            compatible: 
+                (
+                    (
+                        Codecs.AudioAAC || 
+                        Codecs.AudioFLAC ||
+                        Codecs.AudioMP3
+                    ) && 
+                    (
+                        Codecs.VideoH2648B ||
+                        Codecs.VideoH26410B
+                    )
+                        
+                )
+        },
+        {
+            name: 'Kodi (Jellyfin for Kodi)',
+            icon: 'laptop_chromebook',
+            compatible: true
+        },
+    ];
+    // print devices
+    const select = page.querySelector('.showCompatibility');
+    const label = page.querySelector('.showCompatibilityLabel');
+    label.innerHTML = (globalize.translate('DeviceCompatibilityWithoutTranscoding'));
+    
+    const compatiblePlayers = knownMediaPlayers.filter(function (kmp) {
+        return kmp.compatible === true;
+    });
+
+    select.innerHTML = compatiblePlayers.map(function (cp) {
+        return `<span class='compatibleDeviceIcon material-icons ${cp.icon}' aria-hidden='true'></span> ` + cp.name;
+    }).join(', ');
+
+
+    if (compatiblePlayers.length) {
+        page.querySelector('.itemCompatibleWithoutTranscoding').classList.remove('hide');
+    } else {
+        page.querySelector('.itemCompatibleWithoutTranscoding').classList.add('hide');
     }
 }
 
@@ -2057,6 +2222,7 @@ export default function (view, params) {
             renderVideoSelections(view, self._currentPlaybackMediaSources);
             renderAudioSelections(view, self._currentPlaybackMediaSources);
             renderSubtitleSelections(view, self._currentPlaybackMediaSources);
+            renderCompatibility(view, self._currentPlaybackMediaSources);
         });
         view.addEventListener('viewshow', function (e) {
             const page = this;
